@@ -1,0 +1,23 @@
+{
+  "name": "n8n-nodes-seoscoreapi",
+  "version": "1.0.0",
+  "description": "n8n node for SEO Score API — audit any URL for SEO issues with 28 checks",
+  "keywords": ["n8n-community-node-package", "n8n", "seo", "audit", "seo-score"],
+  "license": "MIT",
+  "homepage": "https://seoscoreapi.com",
+  "author": {
+    "name": "SEO Score API",
+    "email": "info@seoscoreapi.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SeoScoreAPI/n8n-nodes-seoscoreapi"
+  },
+  "main": "index.js",
+  "n8n": {
+    "n8nNodesApiVersion": 1,
+    "credentials": ["credentials/SeoScoreApi.credentials.js"],
+    "nodes": ["nodes/SeoScoreApi/SeoScoreApi.node.js"]
+  },
+  "files": ["nodes", "credentials", "index.js"]
+}
