@@ -9,6 +9,7 @@
 | **Audit URL** | Run a full 28-check SEO audit on any URL |
 | **Batch Audit** | Audit up to 10 URLs in one call (paid plans) |
 | **Check Usage** | View your API usage and limits |
+| **Scoreboard Opt-Out** | Opt in or out of the public SEO scoreboard |
 
 ## Setup
 

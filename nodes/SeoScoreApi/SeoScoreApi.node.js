@@ -44,6 +44,12 @@ class SeoScoreApi {
               description: "Check your API usage and limits",
               action: "Check usage",
             },
+            {
+              name: "Scoreboard Opt-Out",
+              value: "scoreboardOptOut",
+              description: "Opt in or out of the public SEO scoreboard",
+              action: "Scoreboard opt-out",
+            },
           ],
           default: "audit",
         },
@@ -67,6 +73,14 @@ class SeoScoreApi {
           placeholder: "https://example.com, https://example.org",
           description: "Comma-separated list of URLs to audit (max 10)",
         },
+        {
+          displayName: "Opt Out",
+          name: "optOut",
+          type: "boolean",
+          default: true,
+          displayOptions: { show: { operation: ["scoreboardOptOut"] } },
+          description: "True to hide from scoreboard, false to show",
+        },
       ],
     };
   }
@@ -76,6 +90,7 @@ class SeoScoreApi {
     const operation = this.getNodeParameter("operation", 0);
     const credentials = await this.getCredentials("seoScoreApi");
     const returnData = [];
+    const ua = "seoscoreapi-n8n/1.1.0";
 
     for (let i = 0; i < items.length; i++) {
       let response;
@@ -86,7 +101,7 @@ class SeoScoreApi {
           method: "GET",
           url: `https://seoscoreapi.com/audit`,
           qs: { url },
-          headers: { "X-API-Key": credentials.apiKey },
+          headers: { "X-API-Key": credentials.apiKey, "User-Agent": ua },
           json: true,
         });
       } else if (operation === "batchAudit") {
@@ -98,6 +113,7 @@ class SeoScoreApi {
           headers: {
             "X-API-Key": credentials.apiKey,
             "Content-Type": "application/json",
+            "User-Agent": ua,
           },
           body: { urls },
           json: true,
@@ -106,7 +122,15 @@ class SeoScoreApi {
         response = await this.helpers.request({
           method: "GET",
           url: "https://seoscoreapi.com/usage",
-          headers: { "X-API-Key": credentials.apiKey },
+          headers: { "X-API-Key": credentials.apiKey, "User-Agent": ua },
+          json: true,
+        });
+      } else if (operation === "scoreboardOptOut") {
+        const optOut = this.getNodeParameter("optOut", i);
+        response = await this.helpers.request({
+          method: "PUT",
+          url: `https://seoscoreapi.com/scoreboard/opt-out?opt_out=${optOut}`,
+          headers: { "X-API-Key": credentials.apiKey, "User-Agent": ua },
           json: true,
         });
       }
