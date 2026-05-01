@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-seoscoreapi",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "n8n node for SEO Score API — audit any URL for SEO issues with 28 checks",
   "keywords": ["n8n-community-node-package", "n8n", "seo", "audit", "seo-score"],
   "license": "MIT",
