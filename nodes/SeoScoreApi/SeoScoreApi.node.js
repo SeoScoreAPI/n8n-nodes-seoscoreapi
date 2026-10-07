@@ -18,7 +18,7 @@ class SeoScoreApi {
       group: ["transform"],
       version: 1,
       subtitle: '={{$parameter["operation"]}}',
-      description: "Audit any URL for SEO issues — 82 checks, scored JSON response",
+      description: "Audit any URL for SEO issues — 80+ checks, scored JSON response",
       defaults: { name: "SEO Score API" },
       inputs: ["main"],
       outputs: ["main"],

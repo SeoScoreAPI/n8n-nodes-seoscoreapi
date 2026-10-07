@@ -1,7 +1,7 @@
 {
   "name": "n8n-nodes-seoscoreapi",
   "version": "1.5.0",
-  "description": "n8n node for SEO Score API — audit any URL for SEO issues with 82 checks",
+  "description": "n8n node for SEO Score API — audit any URL for SEO issues with 80+ checks",
   "keywords": [
     "n8n-community-node-package",
     "n8n",
