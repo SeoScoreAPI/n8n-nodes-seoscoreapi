@@ -1,6 +1,6 @@
 # n8n-nodes-seoscoreapi
 
-An [n8n](https://n8n.io) community node for [SEO Score API](https://seoscoreapi.com) — run SEO audits inside any n8n workflow. 83 checks across SEO, performance, accessibility, and AI readability, returned as scored JSON.
+An [n8n](https://n8n.io) community node for [SEO Score API](https://seoscoreapi.com) — run SEO audits inside any n8n workflow. 80+ checks across SEO, performance, accessibility, and AI readability, returned as scored JSON.
 
 ## Install
 
