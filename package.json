@@ -17,7 +17,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/avansledright/seoscoreapi.com",
+    "url": "https://github.com/SeoScoreAPI/n8n-nodes-seoscoreapi",
     "directory": "sdks/n8n"
   },
   "main": "index.js",
