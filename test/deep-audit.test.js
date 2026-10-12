@@ -41,7 +41,7 @@ test("Deep Audit starts and polls on the main host", async () => {
   assert.equal(calls[0].url, "https://seoscoreapi.com/site-audit");
   assert.deepEqual(calls[0].body, { url: "https://example.com", business_type: "saas" });
   assert.equal(calls[2].url, "https://seoscoreapi.com/site-audit/abc");
-  assert.equal(calls[0].headers["User-Agent"], "seoscoreapi-n8n/1.5.0");
+  assert.equal(calls[0].headers["User-Agent"], "seoscoreapi-n8n/1.7.1");
 });
 
 test("Deep Audit surfaces a failed job", async () => {
