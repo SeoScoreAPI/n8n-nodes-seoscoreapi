@@ -1,6 +1,6 @@
 "use strict";
 
-const VERSION = "1.7.1";
+const VERSION = "1.7.2";
 const API_URL = "https://seoscoreapi.com";
 const DEFAULT_DEEP_AUDIT_URL = "https://seoscoreapi.com";
 
@@ -785,12 +785,14 @@ class SeoScoreApi {
           default: [],
           displayOptions: { show: { operation: ["createCitationTracker", "citationCheck"] } },
           options: [
-            { name: "ChatGPT", value: "chatgpt" },
+            { name: "GPT (Model Knowledge, No Browsing)", value: "gpt" },
             { name: "Gemini", value: "gemini" },
             { name: "Perplexity", value: "perplexity" },
             { name: "Claude", value: "claude" },
+            { name: "Amazon Nova", value: "nova" },
+            { name: "ChatGPT (Web Search)", value: "chatgpt" },
           ],
-          description: "Leave empty for the API default",
+          description: "Leave empty for the API default (GPT, Gemini, Perplexity, Claude)",
         },
         {
           displayName: "Samples",

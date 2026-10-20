@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.7.2 (2026-10-20)
+
+- The Engines option on Create Citation Tracker and Citation Check now lists every engine
+  the API accepts. Added GPT (one of the API's defaults) and Amazon Nova; ChatGPT is now
+  labelled as the web-search product.
+- Run Citation Tracker: a run over 45 seconds now returns `{run_id, status: "running", poll}`
+  (the API answers 202 instead of timing out); use Get Citation Run with that id until it is
+  `completed`.
+
 ## 1.7.1 (2026-10-09)
 
 Package metadata only: the repository and issue links point at the public
