@@ -1,5 +1,30 @@
 # Changelog
 
+## 1.8.0 (2026-10-26)
+
+Prepares the package for n8n verification. Saved workflows keep working unchanged.
+
+- Rewritten in TypeScript on the `@n8n/node-cli` scaffold; the package now ships the
+  built `dist/` folder, has no runtime dependencies and declares `n8n-workflow` as a peer
+  dependency.
+- Requests use `httpRequestWithAuthentication`. The credential now adds the `X-API-Key`
+  header itself and has a **Test** button (`GET /usage`, not counted as an audit).
+- Node version 2 (the default for new nodes) groups the operations under a **Resource**
+  selector: Page, Audit History, Deep Audit, Site Crawl, Site, GEO, AI Citation,
+  AI Citation Credit, Account. Operation values and every parameter name and default are
+  unchanged, and nodes saved as version 1 keep the flat Operation list.
+- Deep Audit and Crawl Site wait with n8n's `sleep` helper between polls (same 5 second
+  interval and the same timeouts).
+- **Continue On Fail** is honoured per item; errors are raised as `NodeApiError` /
+  `NodeOperationError`; output items are paired with their input item.
+- The node can be used as a tool by the AI Agent (`usableAsTool`).
+- Display text follows n8n's UX guidelines (alphabetical option lists, `e.g.` placeholders,
+  title-case option names, Brand Color uses the colour picker). Values are unchanged.
+- Light and dark icons.
+- Published from this repository by GitHub Actions with npm provenance
+  (`.github/workflows/publish.yml`); CI runs lint, build and tests on every pull request.
+- Added the MIT `LICENSE.md`; the `repository` field no longer points at a subdirectory.
+
 ## 1.7.2 (2026-10-20)
 
 - The Engines option on Create Citation Tracker and Citation Check now lists every engine

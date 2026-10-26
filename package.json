@@ -1,7 +1,9 @@
 {
   "name": "n8n-nodes-seoscoreapi",
-  "version": "1.7.2",
+  "version": "1.8.0",
   "description": "n8n node for SEO Score API — audit any URL for SEO issues with 80+ checks",
+  "license": "MIT",
+  "homepage": "https://seoscoreapi.com",
   "keywords": [
     "n8n-community-node-package",
     "n8n",
@@ -9,35 +11,51 @@
     "audit",
     "seo-score"
   ],
-  "license": "MIT",
-  "homepage": "https://seoscoreapi.com",
   "author": {
     "name": "SEO Score API",
     "email": "info@seoscoreapi.com"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/SeoScoreAPI/n8n-nodes-seoscoreapi",
-    "directory": "sdks/n8n"
+    "url": "git+https://github.com/SeoScoreAPI/n8n-nodes-seoscoreapi.git"
   },
-  "main": "index.js",
+  "bugs": {
+    "url": "https://github.com/SeoScoreAPI/n8n-nodes-seoscoreapi/issues"
+  },
   "scripts": {
-    "test": "node --test"
-  },
-  "n8n": {
-    "n8nNodesApiVersion": 1,
-    "credentials": [
-      "credentials/SeoScoreApi.credentials.js"
-    ],
-    "nodes": [
-      "nodes/SeoScoreApi/SeoScoreApi.node.js"
-    ]
+    "build": "n8n-node build",
+    "build:watch": "tsc --watch",
+    "dev": "n8n-node dev",
+    "lint": "n8n-node lint",
+    "lint:fix": "n8n-node lint --fix",
+    "release": "n8n-node release",
+    "prepublishOnly": "n8n-node prerelease",
+    "pretest": "n8n-node build",
+    "test": "node --test test/*.test.js"
   },
   "files": [
-    "nodes",
-    "credentials",
-    "index.js",
-    "README.md",
+    "dist",
+    "!dist/tsconfig.tsbuildinfo",
     "CHANGELOG.md"
-  ]
+  ],
+  "n8n": {
+    "n8nNodesApiVersion": 1,
+    "strict": true,
+    "credentials": [
+      "dist/credentials/SeoScoreApi.credentials.js"
+    ],
+    "nodes": [
+      "dist/nodes/SeoScoreApi/SeoScoreApi.node.js"
+    ]
+  },
+  "devDependencies": {
+    "@n8n/node-cli": "^0.53.4",
+    "eslint": "9.39.4",
+    "prettier": "3.8.3",
+    "release-it": "20.2.0",
+    "typescript": "5.9.3"
+  },
+  "peerDependencies": {
+    "n8n-workflow": "*"
+  }
 }

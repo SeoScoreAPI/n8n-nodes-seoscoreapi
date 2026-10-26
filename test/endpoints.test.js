@@ -2,30 +2,8 @@
 // Operations added in 1.6.0, run against a fake n8n execute context. No network.
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { SeoScoreApi } = require("..");
-
-SeoScoreApi.pollIntervalMs = 1;
+const { SeoScoreApi, run, legacyOperations } = require("./helpers");
 const B = "https://seoscoreapi.com";
-
-function run(params, responses) {
-  const calls = [];
-  const queue = [...responses];
-  const ctx = {
-    getInputData: () => [{ json: {} }],
-    getNodeParameter: (name, _i, fallback) => (name in params ? params[name] : fallback),
-    getCredentials: async () => ({ apiKey: "k" }),
-    helpers: {
-      request: async (opts) => {
-        calls.push(opts);
-        const next = queue.shift();
-        if (next instanceof Error) throw next;
-        return next;
-      },
-      prepareBinaryData: async (buffer, fileName, mimeType) => ({ data: buffer.toString("base64"), fileName, mimeType }),
-    },
-  };
-  return new SeoScoreApi().execute.call(ctx).then((out) => ({ items: out[0], out: out[0].map((x) => x.json), calls }));
-}
 
 // [operation params, method, path, expected qs, expected body]
 const CASES = [
@@ -85,15 +63,14 @@ CASES.forEach(([params, method, path, qs, body], n) => {
     assert.equal(calls.length, 1);
     assert.equal(calls[0].method, method);
     assert.equal(calls[0].url, B + path);
-    assert.equal(calls[0].headers["X-API-Key"], "k");
+    assert.equal(calls[0].credentialType, "seoScoreApi");
     assert.deepEqual(calls[0].qs, qs);
     assert.deepEqual(calls[0].body, body);
   });
 });
 
 test("every operation in the dropdown is handled", async () => {
-  const node = new SeoScoreApi();
-  const ops = node.description.properties.find((p) => p.name === "operation").options.map((o) => o.value);
+  const ops = legacyOperations();
   assert.equal(new Set(ops).size, ops.length, "duplicate operation value");
   for (const operation of ops) {
     // A finished job for every request, so the waiting operations return on the first poll.
@@ -107,8 +84,8 @@ test("every operation in the dropdown is handled", async () => {
 
 test("every field is shown for at least one real operation", () => {
   const props = new SeoScoreApi().description.properties;
-  const ops = new Set(props.find((p) => p.name === "operation").options.map((o) => o.value));
-  for (const p of props.filter((x) => x.name !== "operation")) {
+  const ops = new Set(legacyOperations());
+  for (const p of props.filter((x) => x.name !== "operation" && x.name !== "resource")) {
     for (const op of p.displayOptions.show.operation) assert.ok(ops.has(op), `${p.name} -> ${op}`);
   }
 });
@@ -121,7 +98,7 @@ test("Export Audit Report returns the file as binary data", async () => {
   );
   assert.equal(calls[0].url, `${B}/audit/export`);
   assert.deepEqual(calls[0].qs, { url: "https://example.com/pricing", format: "pdf", brand_name: "Acme" });
-  assert.equal(calls[0].encoding, null);
+  assert.equal(calls[0].encoding, "arraybuffer");
   assert.equal(calls[0].json, false);
   assert.deepEqual(items[0].binary.data, { data: pdf.toString("base64"), fileName: "seo-report-example.com.pdf", mimeType: "application/pdf" });
   assert.deepEqual(items[0].json, { url: "https://example.com/pricing", format: "pdf", fileName: "seo-report-example.com.pdf", bytes: pdf.length });
@@ -165,7 +142,7 @@ test("invalid JSON in a JSON field is a clear error", async () => {
 });
 
 test("auto-reload has only the read operation", () => {
-  const ops = new SeoScoreApi().description.properties.find((p) => p.name === "operation").options.map((o) => o.value);
+  const ops = legacyOperations();
   assert.deepEqual(ops.filter((o) => /autoreload/i.test(o)), ["citationAutoReload"]);
 });
 

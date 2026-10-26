@@ -1,0 +1,18 @@
+{
+	"node": "n8n-nodes-seoscoreapi.seoScoreApi",
+	"nodeVersion": "2.0",
+	"codexVersion": "1.0",
+	"categories": ["Marketing & Content", "Analytics"],
+	"resources": {
+		"credentialDocumentation": [
+			{
+				"url": "https://github.com/SeoScoreAPI/n8n-nodes-seoscoreapi?tab=readme-ov-file#credentials"
+			}
+		],
+		"primaryDocumentation": [
+			{
+				"url": "https://github.com/SeoScoreAPI/n8n-nodes-seoscoreapi?tab=readme-ov-file"
+			}
+		]
+	}
+}
