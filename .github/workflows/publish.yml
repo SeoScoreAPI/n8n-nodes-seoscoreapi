@@ -1,0 +1,38 @@
+name: Publish to npm
+
+# Publishes from this public repo so npm attaches a provenance statement,
+# which n8n requires for verified community nodes (from 2026-05-01).
+# Release: sync from the canonical source, then push a tag vX.Y.Z matching package.json.
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  id-token: write   # OIDC trusted publishing + provenance
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: npm with trusted publishing
+        run: npm install -g npm@11
+
+      - name: Tag must match package.json
+        run: |
+          PKG="$(node -p "require('./package.json').version")"
+          [ "v$PKG" = "$GITHUB_REF_NAME" ] || { echo "tag $GITHUB_REF_NAME != package.json $PKG"; exit 1; }
+
+      - name: Test
+        run: npm test
+
+      - name: Publish with provenance
+        run: npm publish --provenance --access public
