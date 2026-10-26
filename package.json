@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-seoscoreapi",
-  "version": "1.7.2",
+  "version": "1.7.3",
   "description": "n8n node for SEO Score API — audit any URL for SEO issues with 80+ checks",
   "keywords": [
     "n8n-community-node-package",
@@ -17,8 +17,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/SeoScoreAPI/n8n-nodes-seoscoreapi",
-    "directory": "sdks/n8n"
+    "url": "https://github.com/SeoScoreAPI/n8n-nodes-seoscoreapi"
   },
   "main": "index.js",
   "scripts": {

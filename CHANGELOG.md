@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.7.3 (2026-10-26)
+
+Published from the public `SeoScoreAPI/n8n-nodes-seoscoreapi` repository with an npm
+provenance statement, which n8n requires for verified community nodes. No code changes.
+
 ## 1.7.2 (2026-10-20)
 
 - The Engines option on Create Citation Tracker and Citation Check now lists every engine

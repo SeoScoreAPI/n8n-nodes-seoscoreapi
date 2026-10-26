@@ -1,6 +1,6 @@
 "use strict";
 
-const VERSION = "1.7.2";
+const VERSION = "1.7.3";
 const API_URL = "https://seoscoreapi.com";
 const DEFAULT_DEEP_AUDIT_URL = "https://seoscoreapi.com";
 
