@@ -5,6 +5,7 @@ const assert = require("node:assert/strict");
 const { SeoScoreApi } = require("..");
 
 SeoScoreApi.pollIntervalMs = 1;
+SeoScoreApi.sleepFn = async () => {};
 const B = "https://seoscoreapi.com";
 
 function run(params, responses) {

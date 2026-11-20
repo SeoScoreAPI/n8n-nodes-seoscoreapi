@@ -1,5 +1,5 @@
 "use strict";
-// The published layout and n8n's loading contract (1.7.4). Runs against dist/, which the
+// The published layout and n8n's loading contract (1.7.5). Runs against dist/, which the
 // pretest script builds. No network, no n8n install.
 const test = require("node:test");
 const assert = require("node:assert/strict");
@@ -59,5 +59,12 @@ test("no deprecated helpers.request calls ship", () => {
     const src = fs.readFileSync(path.join(root, p), "utf8");
     assert.doesNotMatch(src, /helpers\.request\s*\(/);
     assert.doesNotMatch(src, /helpers\.requestWithAuthentication\s*\(/);
+  }
+});
+
+test("no timer globals ship (n8n's no-restricted-globals rule)", () => {
+  for (const p of [...pkg.n8n.nodes, ...pkg.n8n.credentials]) {
+    const src = fs.readFileSync(path.join(root, p), "utf8");
+    assert.doesNotMatch(src, /\b(setTimeout|setInterval|setImmediate)\s*\(/);
   }
 });

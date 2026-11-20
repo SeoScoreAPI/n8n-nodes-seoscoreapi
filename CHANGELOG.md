@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.7.5 (2026-11-20)
+
+- Waiting between deep-audit polls uses n8n's own `sleep` helper (from `n8n-workflow`, which n8n
+  provides) instead of a timer global, which n8n's verification check does not allow. No change in
+  behaviour.
+
 ## 1.7.4 (2026-11-20)
 
 Fixes for n8n's verification checks, plus the operations below.

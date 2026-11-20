@@ -1,6 +1,6 @@
 "use strict";
 
-const VERSION = "1.7.4";
+const VERSION = "1.7.5";
 const API_URL = "https://seoscoreapi.com";
 const DEFAULT_DEEP_AUDIT_URL = "https://seoscoreapi.com";
 
@@ -929,7 +929,9 @@ class SeoScoreApi {
     const ua = `seoscoreapi-n8n/${VERSION}`;
     const deepBase = String(credentials.deepAuditBaseUrl || DEFAULT_DEEP_AUDIT_URL).replace(/\/+$/, "");
     const pollMs = SeoScoreApi.pollIntervalMs;
-    const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+    // n8n bans timer globals in community nodes; its own sleep helper comes from n8n-workflow
+    // (a peer dependency n8n provides). Tests set SeoScoreApi.sleepFn instead.
+    const sleep = SeoScoreApi.sleepFn || require("n8n-workflow").sleep;
     // Every API call goes through n8n's httpRequest helper (helpers.request is deprecated).
     // A failed call keeps the error shape helpers.request gave: "<status> - <body>".
     const send = async (opts) => {
