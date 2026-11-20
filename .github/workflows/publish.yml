@@ -31,6 +31,9 @@ jobs:
           PKG="$(node -p "require('./package.json').version")"
           [ "v$PKG" = "$GITHUB_REF_NAME" ] || { echo "tag $GITHUB_REF_NAME != package.json $PKG"; exit 1; }
 
+      - name: Install dev dependencies (TypeScript build)
+        run: npm ci
+
       - name: Test
         run: npm test
 
