@@ -15,7 +15,7 @@ function run(params, responses) {
     getNodeParameter: (name, _i, fallback) => (name in params ? params[name] : fallback),
     getCredentials: async () => ({ apiKey: "k" }),
     helpers: {
-      request: async (opts) => {
+      httpRequest: async (opts) => {
         calls.push(opts);
         const next = queue.shift();
         if (next instanceof Error) throw next;
@@ -37,6 +37,7 @@ const CASES = [
   [{ operation: "aiReadability", targetUrl: "https://e.com" }, "GET", "/ai-readability", { url: "https://e.com" }],
   [{ operation: "trackers", targetUrl: "https://e.com" }, "GET", "/trackers", { url: "https://e.com" }],
   [{ operation: "conversion", targetUrl: "https://e.com", pageType: "" }, "GET", "/conversion", { url: "https://e.com" }],
+  [{ operation: "agentView", targetUrl: "https://e.com" }, "GET", "/agent-view", { url: "https://e.com" }],
   [{ operation: "conversion", targetUrl: "https://e.com", pageType: "saas" }, "GET", "/conversion", { url: "https://e.com", page_type: "saas" }],
   [{ operation: "quickWins", quickWinsSource: "csv", quickWinsCsv: "Query,Clicks\nq,1", quickWinsOptions: '{"limit": 5}' },
     "POST", "/quick-wins", undefined, { limit: 5, csv: "Query,Clicks\nq,1" }],
@@ -71,6 +72,8 @@ const CASES = [
   [{ operation: "runCitationTracker", trackerId: 3 }, "POST", "/citations/trackers/3/run"],
   [{ operation: "getCitationRun", runId: 9 }, "GET", "/citations/runs/9"],
   [{ operation: "citationTrackerHistory", trackerId: 3, historyDays: 30 }, "GET", "/citations/trackers/3/history", { days: 30 }],
+  [{ operation: "citationTrackerHistory", trackerId: 3, historyDays: 30, citationChangeDate: "2026-11-03", citationCompareRuns: 6 },
+    "GET", "/citations/trackers/3/history", { days: 30, change_date: "2026-11-03", runs: 6 }],
   [{ operation: "citationCheck", brand: "Acme", citationPrompt: "best crm", citationCompetitors: "Rival" },
     "POST", "/citations/check", undefined, { brand: "Acme", competitors: ["Rival"], prompt: "best crm" }],
   [{ operation: "citationTopups" }, "GET", "/citations/topups"],
@@ -121,7 +124,7 @@ test("Export Audit Report returns the file as binary data", async () => {
   );
   assert.equal(calls[0].url, `${B}/audit/export`);
   assert.deepEqual(calls[0].qs, { url: "https://example.com/pricing", format: "pdf", brand_name: "Acme" });
-  assert.equal(calls[0].encoding, null);
+  assert.equal(calls[0].encoding, "arraybuffer");
   assert.equal(calls[0].json, false);
   assert.deepEqual(items[0].binary.data, { data: pdf.toString("base64"), fileName: "seo-report-example.com.pdf", mimeType: "application/pdf" });
   assert.deepEqual(items[0].json, { url: "https://example.com/pricing", format: "pdf", fileName: "seo-report-example.com.pdf", bytes: pdf.length });
@@ -193,4 +196,43 @@ test("Batch Audit sends cwv only when the switch is on", async () => {
   assert.deepEqual(off.calls[0].body, { urls: ["https://a.com", "https://b.com"] });
   const on = await run({ operation: "batchAudit", urls: "https://a.com", includeCoreWebVitals: true }, [{ count: 1, results: [] }]);
   assert.deepEqual(on.calls[0].body, { urls: ["https://a.com"], cwv: true });
+});
+
+// --- httpRequest errors keep the helpers.request shape (1.7.4) ---
+
+function httpError(status, data) {
+  const err = new Error(`Request failed with status code ${status}`);
+  err.response = { status, statusText: "Err", headers: {}, data };
+  return err;
+}
+
+test("an API error reads '<status> - <body>' as it did with helpers.request", async () => {
+  const body = { detail: "Accessibility audits need a paid plan" };
+  await assert.rejects(run({ operation: "accessibilityAudit", targetUrl: "https://e.com" }, [httpError(402, body)]), (err) => {
+    assert.equal(err.message, `402 - ${JSON.stringify(body)}`);
+    assert.equal(err.statusCode, 402);
+    assert.deepEqual(err.error, body);
+    return true;
+  });
+});
+
+test("a binary call's error body is decoded", async () => {
+  const bytes = Buffer.from(JSON.stringify({ detail: "bad url" }));
+  await assert.rejects(
+    run({ operation: "exportAudit", targetUrl: "nope", exportFormat: "pdf" }, [httpError(400, bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.length))]),
+    (err) => err.message === '400 - {"detail":"bad url"}' && err.statusCode === 400,
+  );
+});
+
+test("an error with no HTTP response passes through unchanged", async () => {
+  const net = new Error("getaddrinfo ENOTFOUND seoscoreapi.com");
+  await assert.rejects(run({ operation: "geoAudit", targetUrl: "https://e.com" }, [net]), (err) => err === net);
+});
+
+test("Export Audit Report accepts an ArrayBuffer response", async () => {
+  const pdf = Buffer.from("%PDF-1.7 report");
+  const ab = pdf.buffer.slice(pdf.byteOffset, pdf.byteOffset + pdf.length);
+  const { items } = await run({ operation: "exportAudit", targetUrl: "https://e.com", exportFormat: "pdf" }, [ab]);
+  assert.equal(items[0].json.bytes, pdf.length);
+  assert.equal(items[0].binary.data.data, pdf.toString("base64"));
 });

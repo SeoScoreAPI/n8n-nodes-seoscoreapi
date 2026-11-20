@@ -14,7 +14,7 @@ function run(params, responses, credentials = { apiKey: "k" }) {
     getNodeParameter: (name, _i, fallback) => (name in params ? params[name] : fallback),
     getCredentials: async () => credentials,
     helpers: {
-      request: async (opts) => {
+      httpRequest: async (opts) => {
         calls.push(opts);
         const next = queue.shift();
         if (next instanceof Error) throw next;
@@ -41,7 +41,7 @@ test("Deep Audit starts and polls on the main host", async () => {
   assert.equal(calls[0].url, "https://seoscoreapi.com/site-audit");
   assert.deepEqual(calls[0].body, { url: "https://example.com", business_type: "saas" });
   assert.equal(calls[2].url, "https://seoscoreapi.com/site-audit/abc");
-  assert.equal(calls[0].headers["User-Agent"], "seoscoreapi-n8n/1.7.3");
+  assert.equal(calls[0].headers["User-Agent"], "seoscoreapi-n8n/1.7.4");
 });
 
 test("Deep Audit surfaces a failed job", async () => {

@@ -45,6 +45,7 @@ it alone unless you route through a proxy or staging host; the legacy
 | **AI Readability** | How well AI/LLM systems can consume a page |
 | **Tracker Inventory** | Third-party trackers and pixels a page loads |
 | **Conversion Score** | Headline, CTA, trust, forms and objections, with a fix list |
+| **Agent View** | What ChatGPT-User, GPTBot, PerplexityBot and ClaudeBot receive compared with a browser (paid plans) |
 | **Page-2 Quick Wins** | Queries ranking 11-20 worth working on, from your own Search Console export |
 | **Get Backlinks** | Observed backlinks, an audit-fed sample (Basic+) |
 | **Generate llms.txt** | llms.txt text for a domain (curated version on Basic+) |
@@ -54,7 +55,7 @@ it alone unless you route through a proxy or staging host; the legacy
 | **Start Site Crawl** / **Get Site Crawl** | Start a crawl and poll it yourself |
 | **Citation Starter Prompts** / **Citation Suggest Prompts** | Prompts to track for AI citations (not metered) |
 | **Create / List / Get / Update / Delete Citation Tracker** | Track a brand across ChatGPT, Gemini, Perplexity and Claude (Starter+) |
-| **Run Citation Tracker** / **Get Citation Run** / **Citation Tracker History** | Run a tracker, read a run, read the trend (metered in checks) |
+| **Run Citation Tracker** / **Get Citation Run** / **Citation Tracker History** | Run a tracker, read a run, read the trend, optionally before vs after a change date (metered in checks) |
 | **Citation Check** | One-off check for a brand and one prompt (paid plans) |
 | **Citation Top-Ups** / **Citation Top-Up Checkout** | Packs and balance / a Stripe Checkout link for a pack (nothing is charged until it is paid) |
 | **Citation Auto-Reload (Read)** | Read the auto-reload setting. It can only be changed from the dashboard; there is no operation that turns it on |

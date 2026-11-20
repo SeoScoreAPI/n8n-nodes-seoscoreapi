@@ -1,5 +1,27 @@
 # Changelog
 
+## 1.7.4 (2026-11-20)
+
+Fixes for n8n's verification checks, plus the operations below.
+
+- **The node loads in n8n again.** n8n loads the class named after each file
+  (`SeoScoreApi` from `SeoScoreApi.node.js` and `SeoScoreApi.credentials.js`); 1.7.3 and earlier
+  exported `nodeClass` and `SeoScoreApiCredentials`, so n8n reported "Class could not be found".
+  Both files now export `SeoScoreApi` (the old names are still exported).
+- API calls use n8n's `this.helpers.httpRequest` instead of the deprecated
+  `this.helpers.request`. Same URLs, headers (`X-API-Key`, `User-Agent: seoscoreapi-n8n/<version>`),
+  query parameters and JSON handling; an API error still reads `<status> - <body>` with
+  `statusCode` and `error`.
+- The package ships compiled output under `dist/` (`dist/nodes/SeoScoreApi/`,
+  `dist/credentials/`), which `n8n.nodes` / `n8n.credentials` point at. `npm run build` makes it;
+  `npm pack` / `npm publish` and `npm test` build first.
+- `n8n-workflow` is a peer dependency.
+- **Agent View** operation: `GET /agent-view`, what ChatGPT-User, GPTBot, PerplexityBot and ClaudeBot
+  receive compared with a browser (blocks, challenge pages, text parity, content that needs
+  JavaScript). Paid plans; counts as one audit.
+- **Citation Tracker History**: optional Change Date and Runs Each Side add `before_after`, the
+  runs before that date compared with the runs on or after it, per engine, with counts.
+
 ## 1.7.3 (2026-10-26)
 
 Published from the public `SeoScoreAPI/n8n-nodes-seoscoreapi` repository with an npm

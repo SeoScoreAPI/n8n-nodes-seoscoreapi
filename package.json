@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-seoscoreapi",
-  "version": "1.7.3",
+  "version": "1.7.4",
   "description": "n8n node for SEO Score API — audit any URL for SEO issues with 80+ checks",
   "keywords": [
     "n8n-community-node-package",
@@ -19,24 +19,28 @@
     "type": "git",
     "url": "https://github.com/SeoScoreAPI/n8n-nodes-seoscoreapi"
   },
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
+    "build": "node scripts/build.js",
+    "prepack": "node scripts/build.js",
+    "pretest": "node scripts/build.js",
     "test": "node --test"
   },
   "n8n": {
     "n8nNodesApiVersion": 1,
     "credentials": [
-      "credentials/SeoScoreApi.credentials.js"
+      "dist/credentials/SeoScoreApi.credentials.js"
     ],
     "nodes": [
-      "nodes/SeoScoreApi/SeoScoreApi.node.js"
+      "dist/nodes/SeoScoreApi/SeoScoreApi.node.js"
     ]
   },
   "files": [
-    "nodes",
-    "credentials",
-    "index.js",
+    "dist",
     "README.md",
     "CHANGELOG.md"
-  ]
+  ],
+  "peerDependencies": {
+    "n8n-workflow": "*"
+  }
 }

@@ -1,6 +1,6 @@
 "use strict";
 
-const VERSION = "1.7.3";
+const VERSION = "1.7.4";
 const API_URL = "https://seoscoreapi.com";
 const DEFAULT_DEEP_AUDIT_URL = "https://seoscoreapi.com";
 
@@ -8,6 +8,31 @@ const DEFAULT_DEEP_AUDIT_URL = "https://seoscoreapi.com";
 // Legacy engine.seoscoreapi.com: /usage.
 function deepAuditUsagePath(base) {
   return base.replace(/^[a-z]+:\/\//i, "").startsWith("engine.") ? "/usage" : "/deep-audit/usage";
+}
+
+// helpers.request failed with message "<status> - <JSON body>", plus statusCode and error
+// (the parsed body). httpRequest throws the HTTP client's error instead; rebuild the old
+// shape so API messages (plan limits, bad URLs, quota) read the same in n8n as before.
+function legacyHttpError(err) {
+  const res = err && err.response;
+  const status = res && (res.status !== undefined ? res.status : res.statusCode);
+  if (status === undefined || status === null) return err;
+  let body = res.data !== undefined ? res.data : res.body;
+  if (body instanceof ArrayBuffer) body = Buffer.from(body);
+  if (Buffer.isBuffer(body)) body = body.toString("utf8");
+  if (typeof body === "string") {
+    try {
+      body = JSON.parse(body);
+    } catch {
+      // not JSON: keep the text
+    }
+  }
+  const e = new Error(`${status} - ${JSON.stringify(body)}`);
+  e.statusCode = status;
+  e.error = body;
+  e.response = { status, statusText: res.statusText, headers: res.headers };
+  e.cause = err;
+  return e;
 }
 
 class SeoScoreApi {
@@ -137,6 +162,12 @@ class SeoScoreApi {
               value: "conversion",
               description: "Score how well a page turns a visitor into a lead or a sale (counts as one audit)",
               action: "Score a page for conversion",
+            },
+            {
+              name: "Agent View",
+              value: "agentView",
+              description: "Check whether ChatGPT-User, GPTBot, PerplexityBot and ClaudeBot receive the same page a browser does (paid plans, counts as one audit)",
+              action: "Check what AI agents receive",
             },
             {
               name: "Page-2 Quick Wins",
@@ -425,7 +456,7 @@ class SeoScoreApi {
           required: true,
           displayOptions: {
             show: {
-              operation: ["accessibilityAudit", "exportAudit", "aiReadability", "trackers", "conversion", "geoAudit", "addGeoMonitor", "removeGeoMonitor", "crawl", "startCrawl"],
+              operation: ["accessibilityAudit", "exportAudit", "aiReadability", "trackers", "conversion", "agentView", "geoAudit", "addGeoMonitor", "removeGeoMonitor", "crawl", "startCrawl"],
             },
           },
           placeholder: "https://example.com",
@@ -860,6 +891,24 @@ class SeoScoreApi {
           displayOptions: { show: { operation: ["citationTrackerHistory"] } },
         },
         {
+          displayName: "Change Date",
+          name: "citationChangeDate",
+          type: "string",
+          default: "",
+          placeholder: "2026-11-03",
+          displayOptions: { show: { operation: ["citationTrackerHistory"] } },
+          description: "Optional. The day a change went live (YYYY-MM-DD, UTC). Adds before_after: the runs before this date compared with the runs on or after it, per engine, with counts",
+        },
+        {
+          displayName: "Runs Each Side",
+          name: "citationCompareRuns",
+          type: "number",
+          default: 4,
+          typeOptions: { minValue: 1, maxValue: 26 },
+          displayOptions: { show: { operation: ["citationTrackerHistory"] } },
+          description: "How many completed runs to compare on each side of the change date",
+        },
+        {
           displayName: "Pack",
           name: "topupPack",
           type: "string",
@@ -881,13 +930,22 @@ class SeoScoreApi {
     const deepBase = String(credentials.deepAuditBaseUrl || DEFAULT_DEEP_AUDIT_URL).replace(/\/+$/, "");
     const pollMs = SeoScoreApi.pollIntervalMs;
     const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-    const getJob = (jobId) => this.helpers.request({
+    // Every API call goes through n8n's httpRequest helper (helpers.request is deprecated).
+    // A failed call keeps the error shape helpers.request gave: "<status> - <body>".
+    const send = async (opts) => {
+      try {
+        return await this.helpers.httpRequest(opts);
+      } catch (err) {
+        throw legacyHttpError(err);
+      }
+    };
+    const getJob = (jobId) => send({
       method: "GET",
       url: `${deepBase}/site-audit/${encodeURIComponent(jobId)}`,
       headers: { "X-API-Key": credentials.apiKey, "User-Agent": ua },
       json: true,
     });
-    const startJob = (body) => this.helpers.request({
+    const startJob = (body) => send({
       method: "POST",
       url: `${deepBase}/site-audit`,
       headers: { "X-API-Key": credentials.apiKey, "Content-Type": "application/json", "User-Agent": ua },
@@ -906,9 +964,9 @@ class SeoScoreApi {
         opts.headers["Content-Type"] = "application/json";
         opts.body = body;
       }
-      if (raw === "buffer") { opts.json = false; opts.encoding = null; }
-      if (raw === "text") opts.json = false;
-      return this.helpers.request(opts);
+      if (raw === "buffer") { opts.json = false; opts.encoding = "arraybuffer"; }
+      if (raw === "text") { opts.json = false; opts.encoding = "text"; }
+      return send(opts);
     };
     const list = (value, sep = ",") => String(value || "").split(sep).map((v) => v.trim()).filter(Boolean);
     const parseJson = (value, label) => {
@@ -934,7 +992,7 @@ class SeoScoreApi {
       if (operation === "audit") {
         const url = this.getNodeParameter("url", i);
         const cwv = this.getNodeParameter("includeCoreWebVitals", i, false) === true;
-        response = await this.helpers.request({
+        response = await send({
           method: "GET",
           url: `https://seoscoreapi.com/audit`,
           qs: cwv ? { url, cwv: "true" } : { url },
@@ -944,7 +1002,7 @@ class SeoScoreApi {
       } else if (operation === "batchAudit") {
         const urlsStr = this.getNodeParameter("urls", i);
         const urls = urlsStr.split(",").map((u) => u.trim()).filter(Boolean);
-        response = await this.helpers.request({
+        response = await send({
           method: "POST",
           url: "https://seoscoreapi.com/audit/batch",
           headers: {
@@ -956,7 +1014,7 @@ class SeoScoreApi {
           json: true,
         });
       } else if (operation === "usage") {
-        response = await this.helpers.request({
+        response = await send({
           method: "GET",
           url: "https://seoscoreapi.com/usage",
           headers: { "X-API-Key": credentials.apiKey, "User-Agent": ua },
@@ -964,7 +1022,7 @@ class SeoScoreApi {
         });
       } else if (operation === "scoreboardOptOut") {
         const optOut = this.getNodeParameter("optOut", i);
-        response = await this.helpers.request({
+        response = await send({
           method: "PUT",
           url: `https://seoscoreapi.com/scoreboard/opt-out?opt_out=${optOut}`,
           headers: { "X-API-Key": credentials.apiKey, "User-Agent": ua },
@@ -973,7 +1031,7 @@ class SeoScoreApi {
       } else if (operation === "history") {
         const url = this.getNodeParameter("historyUrl", i);
         const limit = this.getNodeParameter("historyLimit", i);
-        response = await this.helpers.request({
+        response = await send({
           method: "GET",
           url: "https://seoscoreapi.com/history",
           qs: { url, limit },
@@ -981,7 +1039,7 @@ class SeoScoreApi {
           json: true,
         });
       } else if (operation === "historyDomains") {
-        response = await this.helpers.request({
+        response = await send({
           method: "GET",
           url: "https://seoscoreapi.com/history/domains",
           headers: { "X-API-Key": credentials.apiKey, "User-Agent": ua },
@@ -990,7 +1048,7 @@ class SeoScoreApi {
       } else if (operation === "compare") {
         const urlsStr = this.getNodeParameter("compareUrls", i);
         const urls = urlsStr.split(",").map((u) => u.trim()).filter(Boolean);
-        response = await this.helpers.request({
+        response = await send({
           method: "POST",
           url: "https://seoscoreapi.com/compare",
           headers: {
@@ -1027,7 +1085,7 @@ class SeoScoreApi {
       } else if (operation === "getDeepAudit") {
         response = await getJob(this.getNodeParameter("deepAuditJobId", i));
       } else if (operation === "deepAuditUsage") {
-        response = await this.helpers.request({
+        response = await send({
           method: "GET",
           url: `${deepBase}${deepAuditUsagePath(deepBase)}`,
           headers: { "X-API-Key": credentials.apiKey, "User-Agent": ua },
@@ -1077,6 +1135,8 @@ class SeoScoreApi {
         response = await api("GET", "/conversion", {
           qs: { url: this.getNodeParameter("targetUrl", i), page_type: this.getNodeParameter("pageType", i, "") },
         });
+      } else if (operation === "agentView") {
+        response = await api("GET", "/agent-view", { qs: { url: this.getNodeParameter("targetUrl", i) } });
       } else if (operation === "quickWins") {
         const body = parseJson(this.getNodeParameter("quickWinsOptions", i, "{}"), "Options") || {};
         if (this.getNodeParameter("quickWinsSource", i, "csv") === "rows") {
@@ -1197,7 +1257,14 @@ class SeoScoreApi {
         response = await api("GET", `/citations/runs/${encodeURIComponent(this.getNodeParameter("runId", i))}`);
       } else if (operation === "citationTrackerHistory") {
         response = await api("GET", `/citations/trackers/${encodeURIComponent(this.getNodeParameter("trackerId", i))}/history`, {
-          qs: { days: this.getNodeParameter("historyDays", i, 90) },
+          qs: (() => {
+            const changeDate = String(this.getNodeParameter("citationChangeDate", i, "") || "").trim();
+            return {
+              days: this.getNodeParameter("historyDays", i, 90),
+              change_date: changeDate || undefined,
+              runs: changeDate ? this.getNodeParameter("citationCompareRuns", i, 4) : undefined,
+            };
+          })(),
         });
       } else if (operation === "citationTopups") {
         response = await api("GET", "/citations/topups");
@@ -1216,4 +1283,6 @@ class SeoScoreApi {
 
 SeoScoreApi.pollIntervalMs = 5000;
 
-module.exports = { nodeClass: SeoScoreApi };
+// n8n loads the class named after the file (SeoScoreApi.node.js -> SeoScoreApi).
+// nodeClass is the name 1.7.3 and earlier exported; kept for anyone who required it.
+module.exports = { SeoScoreApi, nodeClass: SeoScoreApi };

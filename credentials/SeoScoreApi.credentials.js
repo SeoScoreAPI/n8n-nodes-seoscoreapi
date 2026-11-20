@@ -26,4 +26,6 @@ class SeoScoreApiCredentials {
   }
 }
 
-module.exports = { SeoScoreApiCredentials };
+// n8n loads the class named after the file (SeoScoreApi.credentials.js -> SeoScoreApi).
+// SeoScoreApiCredentials is the name 1.7.3 and earlier exported; kept for index.js and tests.
+module.exports = { SeoScoreApi: SeoScoreApiCredentials, SeoScoreApiCredentials };
