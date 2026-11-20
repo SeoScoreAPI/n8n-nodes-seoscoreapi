@@ -13,6 +13,7 @@ function run(params, responses) {
   const queue = [...responses];
   const ctx = {
     getInputData: () => [{ json: {} }],
+    getNode: () => ({ name: "SEO Score API", type: "n8n-nodes-seoscoreapi.seoScoreApi", typeVersion: 2 }),
     getNodeParameter: (name, _i, fallback) => (name in params ? params[name] : fallback),
     getCredentials: async () => ({ apiKey: "k" }),
     helpers: {
@@ -112,9 +113,37 @@ test("every operation in the dropdown is handled", async () => {
 test("every field is shown for at least one real operation", () => {
   const props = new SeoScoreApi().description.properties;
   const ops = new Set(props.find((p) => p.name === "operation").options.map((o) => o.value));
-  for (const p of props.filter((x) => x.name !== "operation")) {
+  for (const p of props.filter((x) => x.name !== "operation" && x.name !== "resource")) {
     for (const op of p.displayOptions.show.operation) assert.ok(ops.has(op), `${p.name} -> ${op}`);
   }
+});
+
+// 1.7.6: node version 2 groups the operations under a resource (n8n's verification lint wants
+// resources past five operations). Version 1 keeps the flat list, so saved workflows still run.
+test("version 2 resources cover exactly the version 1 operations, each once", () => {
+  const d = new SeoScoreApi().description;
+  assert.deepEqual(d.version, [1, 2]);
+  assert.equal(d.defaultVersion, 2);
+  const opParams = d.properties.filter((p) => p.name === "operation");
+  const v1 = opParams.filter((p) => p.displayOptions.show["@version"][0] === 1);
+  const v2 = opParams.filter((p) => p.displayOptions.show["@version"][0] === 2);
+  assert.equal(v1.length, 1);
+  const v1Ops = v1[0].options.map((o) => o.value).sort();
+  const v2Ops = v2.flatMap((p) => p.options.map((o) => o.value)).sort();
+  assert.deepEqual(v2Ops, v1Ops);
+  assert.equal(v1Ops.length, 44);
+  const resource = d.properties.find((p) => p.name === "resource");
+  assert.deepEqual(resource.displayOptions.show["@version"], [2]);
+  assert.deepEqual(
+    resource.options.map((o) => o.value).sort(),
+    v2.map((p) => p.displayOptions.show.resource[0]).sort(),
+  );
+  for (const p of v2) assert.ok(p.options.some((o) => o.value === p.default), p.displayOptions.show.resource[0]);
+});
+
+test("each output item links back to its input item", async () => {
+  const { items } = await run({ operation: "usage" }, [{ plan: "free" }]);
+  assert.deepEqual(items[0].pairedItem, { item: 0 });
 });
 
 test("Export Audit Report returns the file as binary data", async () => {

@@ -1,5 +1,29 @@
 # Changelog
 
+## 1.7.6 (2026-11-20)
+
+For n8n's Creator Portal, which rejected 1.7.5 with "Can't find credential file in repo": the
+portal maps each `dist/<dir>/X.js` in `package.json` to the TypeScript source `<dir>/X.ts` in
+the linked repository, and 1.7.5 had plain `.js` sources.
+
+- **Source is TypeScript in n8n's starter layout:** `credentials/SeoScoreApi.credentials.ts`,
+  `nodes/SeoScoreApi/SeoScoreApi.node.ts` and `icons/seoscoreapi.svg`, compiled by `tsc` to the
+  same `dist/` paths as before. Same API calls, `User-Agent: seoscoreapi-n8n/<version>`
+  header and `<status> - <body>` API errors. Still no runtime dependencies (`typescript`,
+  `n8n-workflow` and `@types/node` are dev dependencies; `n8n-workflow` stays a peer).
+- **Resources (node version 2).** New nodes pick a Resource (Account, Audit, Citation, Deep
+  Audit, GEO, History, Site), then an operation. Nodes saved before 1.7.6 stay on version 1
+  with the flat operation list and run unchanged. Operation values and parameter names did not
+  change.
+- The credential has a **Test** button (checks the key against `/usage`, no audits spent) and
+  an icon.
+- The node can be used as an AI Agent tool (`usableAsTool`).
+- Output items link back to their input item (`pairedItem`).
+- Errors raised by the node itself (invalid JSON in a field, a failed or timed-out deep audit
+  or crawl) are n8n `NodeOperationError`s with the same messages.
+- Option lists are in alphabetical order and option labels use n8n's casing (for example
+  "Auto-Detect", "E-Commerce"); Brand Color uses n8n's color picker. Stored values are unchanged.
+
 ## 1.7.5 (2026-11-20)
 
 - Waiting between deep-audit polls uses n8n's own `sleep` helper (from `n8n-workflow`, which n8n

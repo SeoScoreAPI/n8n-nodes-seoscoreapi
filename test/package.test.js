@@ -1,5 +1,5 @@
 "use strict";
-// The published layout and n8n's loading contract (1.7.5). Runs against dist/, which the
+// The published layout and n8n's loading contract (1.7.6). Runs against dist/, which the
 // pretest script builds. No network, no n8n install.
 const test = require("node:test");
 const assert = require("node:assert/strict");
@@ -67,4 +67,36 @@ test("no timer globals ship (n8n's no-restricted-globals rule)", () => {
     const src = fs.readFileSync(path.join(root, p), "utf8");
     assert.doesNotMatch(src, /\b(setTimeout|setInterval|setImmediate)\s*\(/);
   }
+});
+
+// n8n's Creator Portal maps each dist/<dir>/X.js in package.json back to <dir>/X.ts in the
+// repository package.json links to, and rejects the package ("Can't find credential file in
+// repo") when it is not there. 1.7.5 kept plain .js sources, so it was rejected.
+test("every node and credential has its TypeScript source at the path the Creator Portal expects", () => {
+  for (const p of [...pkg.n8n.nodes, ...pkg.n8n.credentials]) {
+    const source = p.replace(/^dist\//, "").replace(/\.js$/, ".ts");
+    assert.ok(fs.existsSync(path.join(root, source)), source);
+  }
+  assert.deepEqual(pkg.n8n.credentials, ["dist/credentials/SeoScoreApi.credentials.js"]);
+  assert.equal(pkg.repository.url, "https://github.com/SeoScoreAPI/n8n-nodes-seoscoreapi");
+});
+
+test("no runtime dependencies; the TypeScript toolchain is dev-only", () => {
+  assert.equal(pkg.dependencies, undefined);
+  for (const dev of ["typescript", "n8n-workflow"]) assert.ok(pkg.devDependencies[dev], dev);
+});
+
+test("the compiled node and credential require nothing but n8n-workflow (a peer dependency)", () => {
+  for (const p of [...pkg.n8n.nodes, ...pkg.n8n.credentials]) {
+    const src = fs.readFileSync(path.join(root, p), "utf8");
+    for (const r of src.match(/require\([^)]*\)/g) || []) assert.equal(r, 'require("n8n-workflow")', `${p}: ${r}`);
+  }
+});
+
+test("the credential's Test button calls /usage with the key and the n8n User-Agent", () => {
+  const { SeoScoreApi: Cred } = require(path.join(root, pkg.n8n.credentials[0]));
+  const { request } = new Cred().test;
+  assert.equal(`${request.baseURL}${request.url}`, "https://seoscoreapi.com/usage");
+  assert.equal(request.headers["X-API-Key"], "={{$credentials.apiKey}}");
+  assert.equal(request.headers["User-Agent"], `seoscoreapi-n8n/${pkg.version}`);
 });

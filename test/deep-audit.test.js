@@ -12,6 +12,7 @@ function run(params, responses, credentials = { apiKey: "k" }) {
   const queue = [...responses];
   const ctx = {
     getInputData: () => [{ json: {} }],
+    getNode: () => ({ name: "SEO Score API", type: "n8n-nodes-seoscoreapi.seoScoreApi", typeVersion: 2 }),
     getNodeParameter: (name, _i, fallback) => (name in params ? params[name] : fallback),
     getCredentials: async () => credentials,
     helpers: {
@@ -42,7 +43,7 @@ test("Deep Audit starts and polls on the main host", async () => {
   assert.equal(calls[0].url, "https://seoscoreapi.com/site-audit");
   assert.deepEqual(calls[0].body, { url: "https://example.com", business_type: "saas" });
   assert.equal(calls[2].url, "https://seoscoreapi.com/site-audit/abc");
-  assert.equal(calls[0].headers["User-Agent"], "seoscoreapi-n8n/1.7.5");
+  assert.equal(calls[0].headers["User-Agent"], `seoscoreapi-n8n/${require("../package.json").version}`);
 });
 
 test("Deep Audit surfaces a failed job", async () => {

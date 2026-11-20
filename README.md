@@ -24,7 +24,13 @@ The credential also has a **Deep Audit Base URL** (default `https://seoscoreapi.
 it alone unless you route through a proxy or staging host; the legacy
 `https://engine.seoscoreapi.com` still works there too.
 
+**Test** on the credential screen checks the key against `/usage`, which spends no audits.
+
 ## Operations
+
+New nodes (node version 2, from 1.7.6) pick a **Resource** first: Account, Audit, Citation,
+Deep Audit, GEO, History or Site, then one of its operations. Nodes added before 1.7.6 stay on
+version 1 with the single flat operation list, so saved workflows run unchanged.
 
 | Operation | Description |
 |---|---|
@@ -93,6 +99,12 @@ payment link you can send yourself.
 
 **Start Site Crawl → Wait → Get Site Crawl → IF status = completed**, looping back to Wait
 otherwise. **Crawl Site** does the same in one node with a timeout.
+
+## Development
+
+Source is TypeScript in n8n's starter layout (`nodes/SeoScoreApi/SeoScoreApi.node.ts`,
+`credentials/SeoScoreApi.credentials.ts`, `icons/`), compiled to `dist/` by `npm run build`.
+`npm ci` then `npm test` (builds first; no network).
 
 ## Documentation
 

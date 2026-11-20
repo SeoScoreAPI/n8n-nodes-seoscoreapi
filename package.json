@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-seoscoreapi",
-  "version": "1.7.5",
+  "version": "1.7.6",
   "description": "n8n node for SEO Score API — audit any URL for SEO issues with 80+ checks",
   "keywords": [
     "n8n-community-node-package",
@@ -42,5 +42,10 @@
   ],
   "peerDependencies": {
     "n8n-workflow": "*"
+  },
+  "devDependencies": {
+    "@types/node": "22.19.1",
+    "n8n-workflow": "2.16.0",
+    "typescript": "5.9.3"
   }
 }
